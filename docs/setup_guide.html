@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Email Automation — Setup Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --cream: #faf7f2;
+    --warm-white: #fff9f4;
+    --ink: #1c1814;
+    --ink-mid: #4a4540;
+    --ink-light: #8a8480;
+    --rule: #e8e0d6;
+    --accent: #c95f2e;
+    --accent-light: #f5ece6;
+    --accent-mid: #e8a080;
+    --blue: #2c5f8a;
+    --blue-light: #e8f0f7;
+    --green: #2d6a4f;
+    --green-light: #e8f4ee;
+    --amber: #8a6200;
+    --amber-light: #fef3cd;
+    --step-size: 32px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--ink);
+    color: var(--warm-white);
+    padding: 56px 40px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent) 0%, #e8824a 50%, transparent 100%);
+  }
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent-mid);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-family: 'Lora', serif;
+    font-size: clamp(28px, 4vw, 46px);
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    max-width: 600px;
+  }
+  .header-sub {
+    color: #b0a89e;
+    font-size: 15px;
+    font-weight: 300;
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  /* ── Navigation pills ── */
+  .nav-wrap {
+    background: var(--warm-white);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav {
+    display: flex;
+    gap: 0;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .nav-btn {
+    padding: 18px 24px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-light);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { color: var(--ink-mid); }
+  .nav-btn.active { color: var(--ink); border-bottom-color: var(--accent); }
+
+  /* ── Content ── */
+  .content { max-width: 860px; margin: 0 auto; padding: 0 40px 80px; }
+
+  /* ── Pathway sections ── */
+  .pathway { display: none; padding-top: 48px; }
+  .pathway.active { display: block; }
+
+  /* ── Intro card ── */
+  .intro-card {
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 40px;
+    background: var(--warm-white);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .intro-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .intro-icon.orange { background: var(--accent-light); }
+  .intro-icon.blue { background: var(--blue-light); }
+  .intro-title {
+    font-family: 'Lora', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .intro-desc { font-size: 14px; color: var(--ink-mid); line-height: 1.7; }
+  .time-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-top: 10px;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 500;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* ── Steps ── */
+  .steps { margin-bottom: 48px; }
+  .step {
+    display: grid;
+    grid-template-columns: var(--step-size) 1fr;
+    gap: 0 20px;
+    position: relative;
+  }
+  .step-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .step-num {
+    width: var(--step-size);
+    height: var(--step-size);
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .step-num.blue-num { background: var(--blue); }
+  .step-line {
+    width: 1px;
+    flex: 1;
+    background: var(--rule);
+    margin: 6px 0 0;
+    min-height: 24px;
+  }
+  .step:last-child .step-line { display: none; }
+  .step-body { padding-bottom: 32px; }
+  .step-title {
+    font-family: 'Lora', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    padding-top: 5px;
+  }
+  .step-desc {
+    font-size: 14px;
+    color: var(--ink-mid);
+    margin-bottom: 12px;
+    line-height: 1.75;
+  }
+  .step-desc strong { color: var(--ink); font-weight: 500; }
+
+  /* ── UI instruction boxes ── */
+  .ui-path {
+    background: var(--warm-white);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--ink-mid);
+    margin: 10px 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ui-path.blue-path { border-left-color: var(--blue); }
+  .arrow { color: var(--ink-light); margin: 0 4px; }
+
+  /* ── Copy fields ── */
+  .copy-fields { margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+  .copy-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 10px;
+    align-items: center;
+    background: var(--warm-white);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .copy-key {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .copy-hint {
+    color: var(--ink-light);
+    font-style: italic;
+  }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 12px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .callout.warn {
+    background: var(--amber-light);
+    border: 1px solid #f0d070;
+    color: var(--amber);
+  }
+  .callout.info {
+    background: var(--blue-light);
+    border: 1px solid #b8d0e8;
+    color: var(--blue);
+  }
+  .callout.success {
+    background: var(--green-light);
+    border: 1px solid #a0d0b8;
+    color: var(--green);
+  }
+  .callout strong { font-weight: 500; }
+
+  /* ── Screenshot hint ── */
+  .screen-hint {
+    background: var(--ink);
+    color: var(--warm-white);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    margin: 10px 0;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .screen-hint span:first-child { font-size: 15px; flex-shrink: 0; }
+
+  /* ── Permission grid ── */
+  .perm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  .perm-item {
+    background: var(--warm-white);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .perm-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .perm-note { font-size: 12px; color: var(--ink-light); margin-top: 2px; }
+
+  /* ── Summary box ── */
+  .summary-box {
+    background: var(--ink);
+    border-radius: 12px;
+    padding: 32px;
+    margin-top: 48px;
+  }
+  .summary-title {
+    font-family: 'Lora', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--warm-white);
+    margin-bottom: 20px;
+  }
+  .summary-item {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #2e2c28;
+    font-size: 13px;
+  }
+  .summary-item:last-child { border-bottom: none; }
+  .summary-key { color: var(--accent-mid); font-weight: 500; }
+  .summary-val { color: #b0a89e; }
+
+  /* ── 1Password steps ── */
+  .pass-steps { counter-reset: pass; }
+  .pass-step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--ink-mid);
+    align-items: flex-start;
+  }
+  .pass-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 40px 0;
+  }
+
+  @media (max-width: 600px) {
+    .header, .nav-wrap, .content { padding-left: 20px; padding-right: 20px; }
+    .copy-row, .summary-item { grid-template-columns: 1fr; }
+    .perm-grid { grid-template-columns: 1fr; }
+    .intro-card { grid-template-columns: 1fr; }
+    .nav-btn { padding: 16px 14px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">Email Automation — Client Setup</div>
+  <h1>Getting your automation connected</h1>
+  <p class="header-sub">This guide walks you through what we need to link your Microsoft email addresses to the automation system. Choose the option that suits you best below.</p>
+</div>
+
+<div class="nav-wrap">
+  <div class="nav">
+    <button class="nav-btn active" onclick="showPath('a')">Option A — I'll set it up myself</button>
+    <button class="nav-btn" onclick="showPath('b')">Option B — Developer does it for me</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- ══════════════════ PATHWAY A ══════════════════ -->
+  <div class="pathway active" id="path-a">
+
+    <div class="intro-card">
+      <div class="intro-icon orange">🔧</div>
+      <div>
+        <div class="intro-title">Option A — You set it up, then send the details securely</div>
+        <p class="intro-desc">You'll follow a few steps inside Microsoft's website to create a connection point for the automation. Nothing gets installed on your computer. At the end, you'll send four pieces of information to your developer via 1Password — a secure password manager — so they never travel over email.</p>
+        <div class="time-pill">⏱ About 20–30 minutes</div>
+      </div>
+    </div>
+
+    <!-- Part 1 -->
+    <div class="section-label">Part 1 of 3 — Register the app in Microsoft Azure</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">1</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Sign in to the Microsoft Azure portal</div>
+          <p class="step-desc">Open a web browser and go to <strong>portal.azure.com</strong>. Sign in with your Microsoft 365 admin account — this is the same login you use to manage your business emails.</p>
+          <div class="callout info">
+            <span class="callout-icon">ℹ</span>
+            <span>Not sure if you have admin access? You'll know you're in the right place if you can see a dashboard with tiles and services after logging in. If you get an error, contact whoever manages your IT.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">2</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Open App registrations</div>
+          <p class="step-desc">Once you're logged in, look for the search bar at the very top of the page. Type <strong>App registrations</strong> and click on it when it appears in the results.</p>
+          <div class="ui-path">Search bar at the top <span class="arrow">→</span> type "App registrations" <span class="arrow">→</span> click the result</div>
+          <p class="step-desc">On the App registrations page, click the button that says <strong>+ New registration</strong>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">3</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Fill in the registration form</div>
+          <p class="step-desc">A form will appear with a few fields. Fill them in exactly as shown below, then click the blue <strong>Register</strong> button at the bottom.</p>
+          <div class="copy-fields">
+            <div class="copy-row"><span class="copy-key">Name</span><span class="copy-hint">email-automation-bot</span></div>
+            <div class="copy-row"><span class="copy-key">Supported account types</span><span class="copy-hint">Select: "Accounts in this organizational directory only"</span></div>
+            <div class="copy-row"><span class="copy-key">Redirect URI</span><span class="copy-hint">Leave this completely blank</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">4</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Copy your first two pieces of information</div>
+          <p class="step-desc">After clicking Register, you'll land on a page for your new app. You'll see two IDs displayed on this page. Copy them somewhere safe — you'll be sending these to your developer.</p>
+          <div class="copy-fields">
+            <div class="copy-row"><span class="copy-key">Application (client) ID</span><span class="copy-hint">A long code, e.g. a1b2c3d4-e5f6-…</span></div>
+            <div class="copy-row"><span class="copy-key">Directory (tenant) ID</span><span class="copy-hint">Another long code in the same format</span></div>
+          </div>
+          <div class="screen-hint">
+            <span>📸</span>
+            <span>Tip: take a screenshot of this page so you have both IDs saved. Don't close this browser tab yet.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">5</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Create a client secret</div>
+          <p class="step-desc">Look at the menu on the left side of the page. Click on <strong>Certificates &amp; secrets</strong>. Then click <strong>+ New client secret</strong>.</p>
+          <div class="ui-path">Left menu <span class="arrow">→</span> Certificates &amp; secrets <span class="arrow">→</span> + New client secret</div>
+          <p class="step-desc">A small panel will slide in on the right. Fill it in like this:</p>
+          <div class="copy-fields">
+            <div class="copy-row"><span class="copy-key">Description</span><span class="copy-hint">email automation</span></div>
+            <div class="copy-row"><span class="copy-key">Expires</span><span class="copy-hint">Select: 24 months</span></div>
+          </div>
+          <p class="step-desc" style="margin-top:10px;">Click <strong>Add</strong>. A new row will appear in a table with a long code under the <strong>Value</strong> column.</p>
+          <div class="callout warn">
+            <span class="callout-icon">⚠</span>
+            <span><strong>Important:</strong> Copy this Value immediately — before you click anywhere else. Microsoft hides it permanently after you leave this page and you would need to create a new one if you miss it.</span>
+          </div>
+          <div class="copy-fields">
+            <div class="copy-row"><span class="copy-key">Client Secret Value</span><span class="copy-hint">Copy the Value column — NOT the Secret ID column</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">6</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Set the permissions</div>
+          <p class="step-desc">In the left menu, click on <strong>API permissions</strong>. Then click <strong>+ Add a permission</strong>. A panel slides in — click on <strong>Microsoft Graph</strong>, then select <strong>Application permissions</strong>.</p>
+          <div class="ui-path">API permissions <span class="arrow">→</span> + Add a permission <span class="arrow">→</span> Microsoft Graph <span class="arrow">→</span> Application permissions</div>
+          <p class="step-desc">Use the search box to find and tick each of these three permissions:</p>
+          <div class="perm-grid">
+            <div class="perm-item"><div class="perm-name">Mail.Send</div><div class="perm-note">Allows sending emails</div></div>
+            <div class="perm-item"><div class="perm-name">Files.ReadWrite.All</div><div class="perm-note">Allows accessing your OneDrive files</div></div>
+            <div class="perm-item"><div class="perm-name">User.Read.All</div><div class="perm-note">Allows looking up email addresses</div></div>
+          </div>
+          <p class="step-desc" style="margin-top:10px;">After adding all three, click the button that says <strong>Grant admin consent for [your organisation name]</strong> and confirm when prompted.</p>
+          <div class="callout warn">
+            <span class="callout-icon">⚠</span>
+            <span>This final "Grant admin consent" step is essential — without it the permissions won't actually work, even though they appear in the list.</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /steps -->
+
+    <!-- Part 2 -->
+    <div class="section-label">Part 2 of 3 — Set up OneDrive folders</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">7</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Create the folder structure in OneDrive</div>
+          <p class="step-desc">Open <strong>onedrive.com</strong> (or OneDrive via your Microsoft 365 account) and create the following folders. You can name the top-level folder anything you like — just let your developer know what you called it.</p>
+          <div class="copy-fields">
+            <div class="copy-row"><span class="copy-key">Top folder</span><span class="copy-hint">e.g. email-automation</span></div>
+            <div class="copy-row"><span class="copy-key">Inside that, create</span><span class="copy-hint">A folder called: csv</span></div>
+            <div class="copy-row"><span class="copy-key">Inside that, create</span><span class="copy-hint">A folder called: templates</span></div>
+            <div class="copy-row"><span class="copy-key">Inside that, create</span><span class="copy-hint">A folder called: logs</span></div>
+          </div>
+          <div class="callout info">
+            <span class="callout-icon">ℹ</span>
+            <span>Your contact lists (CSV files) will go into the <strong>csv</strong> folder. Your email templates go into <strong>templates</strong>. The <strong>logs</strong> folder is filled automatically by the system.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">8</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Note down the OneDrive account email</div>
+          <p class="step-desc">Your developer needs to know which Microsoft 365 account owns this OneDrive. This is simply the email address you're logged in as on OneDrive.</p>
+          <div class="copy-fields">
+            <div class="copy-row"><span class="copy-key">OneDrive account email</span><span class="copy-hint">e.g. you@yourcompany.com</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Part 3 -->
+    <div class="section-label">Part 3 of 3 — Send everything securely via 1Password</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">9</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Create a free 1Password account</div>
+          <p class="step-desc">1Password is a secure password manager that lets you share sensitive information safely. Go to <strong>1password.com</strong> and sign up for a free account if you don't already have one.</p>
+          <div class="callout success">
+            <span class="callout-icon">✓</span>
+            <span>1Password encrypts everything you store. Even 1Password themselves cannot read what you share through it. It's one of the most trusted tools for securely sharing credentials.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">10</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Create a secure note with your credentials</div>
+          <p class="step-desc">Once logged in to 1Password, create a new item — choose <strong>Secure Note</strong>. Paste in all of the following information you collected in the steps above:</p>
+          <div class="pass-steps">
+            <div class="pass-step"><div class="pass-num">1</div><span>Click <strong>+ New Item</strong> then select <strong>Secure Note</strong></span></div>
+            <div class="pass-step"><div class="pass-num">2</div><span>Title it something like: <em>Email Automation Credentials</em></span></div>
+            <div class="pass-step"><div class="pass-num">3</div><span>In the notes field, paste each of the values below with their labels</span></div>
+            <div class="pass-step"><div class="pass-num">4</div><span>Save the note</span></div>
+          </div>
+          <div class="copy-fields" style="margin-top:12px;">
+            <div class="copy-row"><span class="copy-key">Application (client) ID</span><span class="copy-hint">From Step 4</span></div>
+            <div class="copy-row"><span class="copy-key">Directory (tenant) ID</span><span class="copy-hint">From Step 4</span></div>
+            <div class="copy-row"><span class="copy-key">Client Secret Value</span><span class="copy-hint">From Step 5</span></div>
+            <div class="copy-row"><span class="copy-key">OneDrive account email</span><span class="copy-hint">From Step 8</span></div>
+            <div class="copy-row"><span class="copy-key">OneDrive folder name</span><span class="copy-hint">Top folder you created, e.g. email-automation</span></div>
+            <div class="copy-row"><span class="copy-key">Sending email address(es)</span><span class="copy-hint">Every Outlook address the automation will send from</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num">11</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Share the note with your developer</div>
+          <p class="step-desc">Open the note you just saved. Click the <strong>Share</strong> button (it may look like an arrow pointing up or out). Enter your developer's email address and send the invite.</p>
+          <div class="ui-path">Open the note <span class="arrow">→</span> Share / Send a copy <span class="arrow">→</span> Enter developer's email <span class="arrow">→</span> Send</div>
+          <div class="callout info">
+            <span class="callout-icon">ℹ</span>
+            <span>Alternatively, 1Password lets you create a shareable link — your developer doesn't even need a 1Password account to receive it. Look for <strong>"Get a link to share"</strong> inside the share options.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-box">
+      <div class="summary-title">You're done — here's what you've shared</div>
+      <div class="summary-item"><span class="summary-key">AZURE_CLIENT_ID</span><span class="summary-val">Application ID from the Azure portal</span></div>
+      <div class="summary-item"><span class="summary-key">AZURE_TENANT_ID</span><span class="summary-val">Directory ID from the Azure portal</span></div>
+      <div class="summary-item"><span class="summary-key">AZURE_CLIENT_SECRET</span><span class="summary-val">The secret value — most sensitive item</span></div>
+      <div class="summary-item"><span class="summary-key">ONEDRIVE_USER_ID</span><span class="summary-val">The email address that owns your OneDrive</span></div>
+      <div class="summary-item"><span class="summary-key">SENDER_EMAIL(S)</span><span class="summary-val">All Outlook addresses to send from</span></div>
+      <div class="summary-item"><span class="summary-key">ONEDRIVE_REMOTE_BASE</span><span class="summary-val">The top-level OneDrive folder name you created</span></div>
+    </div>
+
+  </div><!-- /path-a -->
+
+
+  <!-- ══════════════════ PATHWAY B ══════════════════ -->
+  <div class="pathway" id="path-b">
+
+    <div class="intro-card">
+      <div class="intro-icon blue">🤝</div>
+      <div>
+        <div class="intro-title">Option B — Give your developer temporary access to do it for you</div>
+        <p class="intro-desc">If you'd prefer not to handle technical steps yourself, you can invite your developer as a temporary Guest Administrator on your Microsoft account. They'll set everything up, move the credentials directly to the secure system, and you remove their access straight after. No sensitive information changes hands.</p>
+        <div class="time-pill" style="background: var(--blue-light); color: var(--blue);">⏱ About 10 minutes on your end</div>
+      </div>
+    </div>
+
+    <div class="section-label">What happens in this option</div>
+    <div class="callout info" style="margin-bottom:32px;">
+      <span class="callout-icon">ℹ</span>
+      <span>You invite your developer as a Guest Admin → they log in to your Azure portal, set up the app, and copy the credentials directly into the secure system → you remove their access. The credentials never get written down or sent anywhere.</span>
+    </div>
+
+    <div class="section-label">Your steps — inviting a Guest Admin</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-left"><div class="step-num blue-num">1</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Sign in to the Microsoft 365 admin centre</div>
+          <p class="step-desc">Open your browser and go to <strong>admin.microsoft.com</strong>. Sign in with your Microsoft 365 admin account — the same one you use to manage email accounts for your organisation.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num blue-num">2</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Navigate to Users</div>
+          <p class="step-desc">In the left-hand menu, look for <strong>Users</strong> and click it, then click <strong>Guest users</strong>.</p>
+          <div class="ui-path blue-path">Left menu <span class="arrow">→</span> Users <span class="arrow">→</span> Guest users</div>
+          <div class="callout info">
+            <span class="callout-icon">ℹ</span>
+            <span>If you don't see "Guest users" you may need to go through the Azure Active Directory portal instead. Go to <strong>portal.azure.com</strong> <span class="arrow">→</span> Azure Active Directory <span class="arrow">→</span> Users <span class="arrow">→</span> + New guest user.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num blue-num">3</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Invite your developer as a guest</div>
+          <p class="step-desc">Click <strong>+ Invite external user</strong> (or <strong>+ New guest user</strong>). Fill in the form:</p>
+          <div class="copy-fields">
+            <div class="copy-row"><span class="copy-key">Name</span><span class="copy-hint">Your developer's name</span></div>
+            <div class="copy-row"><span class="copy-key">Email address</span><span class="copy-hint">Your developer's email address</span></div>
+            <div class="copy-row"><span class="copy-key">Message (optional)</span><span class="copy-hint">You can write: "Temporary access for email automation setup"</span></div>
+          </div>
+          <p class="step-desc" style="margin-top:10px;">Click <strong>Invite</strong>. Your developer will receive an email asking them to accept.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num blue-num">4</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Assign the Global Administrator role</div>
+          <p class="step-desc">Once the invitation is sent, find the guest user you just created in the list and click their name. Then click <strong>Assigned roles</strong> (or <strong>+ Add role</strong>) and assign them the <strong>Global Administrator</strong> role.</p>
+          <div class="ui-path blue-path">Click the guest user's name <span class="arrow">→</span> Assigned roles <span class="arrow">→</span> + Add assignments <span class="arrow">→</span> Search "Global Administrator" <span class="arrow">→</span> Add</div>
+          <div class="callout warn">
+            <span class="callout-icon">⚠</span>
+            <span><strong>This gives your developer full admin access.</strong> Only do this with someone you trust, and make sure to remove the role as soon as they confirm the setup is done (Step 6 below).</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num blue-num">5</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Create the OneDrive folders</div>
+          <p class="step-desc">While you wait for your developer to complete the setup, create the folder structure they'll need in OneDrive. Go to <strong>onedrive.com</strong> and create the following inside your OneDrive:</p>
+          <div class="copy-fields">
+            <div class="copy-row"><span class="copy-key">Top folder</span><span class="copy-hint">e.g. email-automation (note the name)</span></div>
+            <div class="copy-row"><span class="copy-key">Inside that</span><span class="copy-hint">A folder called: csv</span></div>
+            <div class="copy-row"><span class="copy-key">Inside that</span><span class="copy-hint">A folder called: templates</span></div>
+            <div class="copy-row"><span class="copy-key">Inside that</span><span class="copy-hint">A folder called: logs</span></div>
+          </div>
+          <p class="step-desc" style="margin-top:10px;">Let your developer know the name of the top folder and the email address you're logged into OneDrive with. You can send these over regular email or message — they are not sensitive on their own.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-left"><div class="step-num blue-num">6</div><div class="step-line"></div></div>
+        <div class="step-body">
+          <div class="step-title">Wait for confirmation, then remove access</div>
+          <p class="step-desc">Your developer will tell you when the setup is complete. As soon as they confirm, remove their administrator role — and optionally remove the guest account entirely.</p>
+          <div class="ui-path blue-path">Users <span class="arrow">→</span> Guest users <span class="arrow">→</span> Click their name <span class="arrow">→</span> Assigned roles <span class="arrow">→</span> Remove Global Administrator</div>
+          <p class="step-desc" style="margin-top:10px;">To remove the guest account completely: go back to their user profile and click <strong>Delete user</strong>.</p>
+          <div class="callout success">
+            <span class="callout-icon">✓</span>
+            <span>Once you remove the role (and optionally the account), your developer no longer has any access to your Microsoft systems. The automation itself runs using the app credentials — not their personal login.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Summary B -->
+    <div class="summary-box">
+      <div class="summary-title">What to tell your developer before they log in</div>
+      <div class="summary-item"><span class="summary-key">Tenant domain</span><span class="summary-val">Your company's Microsoft domain, e.g. yourcompany.com</span></div>
+      <div class="summary-item"><span class="summary-key">OneDrive email</span><span class="summary-val">The account email that owns the OneDrive folders</span></div>
+      <div class="summary-item"><span class="summary-key">OneDrive folder name</span><span class="summary-val">The top-level folder name you created, e.g. email-automation</span></div>
+      <div class="summary-item"><span class="summary-key">Sending email addresses</span><span class="summary-val">Every Outlook address the automation should send from</span></div>
+      <div class="summary-item"><span class="summary-key">When done</span><span class="summary-val">Remove the Global Administrator role and delete the guest account</span></div>
+    </div>
+
+  </div><!-- /path-b -->
+
+</div><!-- /content -->
+
+<script>
+  function showPath(id) {
+    document.querySelectorAll('.pathway').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('path-' + id).classList.add('active');
+    event.target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

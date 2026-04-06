@@ -1,0 +1,75 @@
+# .github/workflows/email_automation.yml
+# Runs the Phase 1 email outreach workflow on a daily schedule.
+# Scheduled for 9 AM MST = 16:00 UTC (accounts for MST = UTC-7).
+# Can also be triggered manually via the Actions tab.
+
+name: Email Outreach Automation
+
+on:
+  schedule:
+    - cron: "0 16 * * 1-5"   # 9 AM MST, Monday–Friday
+  workflow_dispatch:           # Manual trigger for testing
+    inputs:
+      dry_run:
+        description: "Dry run (skips actual sends)"
+        required: false
+        default: "false"
+
+jobs:
+  send-emails:
+    name: Send Outreach Emails
+    runs-on: ubuntu-latest
+    timeout-minutes: 480      # 8-hour cap (25 emails × 5 min + buffer)
+
+    env:
+      # ── Azure / Graph API ─────────────────────────────────────────────────
+      AZURE_TENANT_ID:        ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID:        ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET:    ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      # ── OneDrive ──────────────────────────────────────────────────────────
+      ONEDRIVE_USER_ID:       ${{ secrets.ONEDRIVE_USER_ID }}
+      ONEDRIVE_REMOTE_BASE:   ${{ secrets.ONEDRIVE_REMOTE_BASE }}
+
+      # ── Email Config ──────────────────────────────────────────────────────
+      SENDER_EMAIL:           ${{ secrets.SENDER_EMAIL }}
+      EMAIL_SUBJECT:          ${{ secrets.EMAIL_SUBJECT }}
+      CSV_FILENAME:           ${{ secrets.CSV_FILENAME }}
+      TEMPLATE_FILENAME:      ${{ secrets.TEMPLATE_FILENAME }}
+
+      # ── Send Settings ─────────────────────────────────────────────────────
+      DAILY_LIMIT:            "25"
+      INTERVAL_SECONDS:       "300"
+      LOG_DIR:                "logs"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run automated tests
+        run: pytest tests/ -v --tb=short
+
+      - name: Run email workflow
+        if: github.event.inputs.dry_run != 'true'
+        run: python src/main.py
+
+      - name: Dry run notice
+        if: github.event.inputs.dry_run == 'true'
+        run: echo "DRY RUN — email sends skipped."
+
+      - name: Upload logs as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: email-logs-${{ github.run_id }}
+          path: logs/
+          retention-days: 30
