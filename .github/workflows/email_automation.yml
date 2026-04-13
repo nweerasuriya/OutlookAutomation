@@ -73,3 +73,9 @@ jobs:
           name: email-logs-${{ github.run_id }}
           path: logs/
           retention-days: 30
+
+      - name: Debug secret presence
+        run: |
+          echo "Tenant ID set: ${{ secrets.AZURE_TENANT_ID != '' }}"
+          echo "Client ID set: ${{ secrets.AZURE_CLIENT_ID != '' }}"
+          echo "Secret set: ${{ secrets.AZURE_CLIENT_SECRET != '' }}"
