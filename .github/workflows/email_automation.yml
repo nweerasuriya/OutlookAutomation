@@ -58,11 +58,41 @@ jobs:
       - name: Run automated tests
         run: pytest tests/ -v --tb=short
         
-      - name: Debug secret presence
+      - name: Debug token acquisition
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         run: |
-          echo "Tenant ID set: ${{ secrets.AZURE_TENANT_ID != '' }}"
-          echo "Client ID set: ${{ secrets.AZURE_CLIENT_ID != '' }}"
-          echo "Secret set: ${{ secrets.AZURE_CLIENT_SECRET != '' }}"
+          python - <<'EOF'
+          import os, msal, json
+      
+          tenant_id     = os.environ["AZURE_TENANT_ID"]
+          client_id     = os.environ["AZURE_CLIENT_ID"]
+          client_secret = os.environ["AZURE_CLIENT_SECRET"]
+      
+          print(f"Tenant ID length:  {len(tenant_id)}")
+          print(f"Client ID length:  {len(client_id)}")
+          print(f"Secret length:     {len(client_secret)}")
+          print(f"Tenant ID format valid: {len(tenant_id.strip()) == 36}")
+          print(f"Client ID format valid: {len(client_id.strip()) == 36}")
+      
+          app = msal.ConfidentialClientApplication(
+              client_id,
+              authority=f"https://login.microsoftonline.com/{tenant_id}",
+              client_credential=client_secret,
+          )
+          result = app.acquire_token_for_client(
+              scopes=["https://graph.microsoft.com/.default"]
+          )
+      
+          if "access_token" in result:
+              print("SUCCESS — token acquired")
+              print(f"Token length: {len(result['access_token'])}")
+          else:
+              print("FAILED — full error response:")
+              print(json.dumps(result, indent=2))
+          EOF
 
       - name: Run email workflow
         if: github.event.inputs.dry_run != 'true'
