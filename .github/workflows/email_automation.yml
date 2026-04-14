@@ -57,6 +57,12 @@ jobs:
 
       - name: Run automated tests
         run: pytest tests/ -v --tb=short
+        
+      - name: Debug secret presence
+        run: |
+          echo "Tenant ID set: ${{ secrets.AZURE_TENANT_ID != '' }}"
+          echo "Client ID set: ${{ secrets.AZURE_CLIENT_ID != '' }}"
+          echo "Secret set: ${{ secrets.AZURE_CLIENT_SECRET != '' }}"
 
       - name: Run email workflow
         if: github.event.inputs.dry_run != 'true'
@@ -73,9 +79,3 @@ jobs:
           name: email-logs-${{ github.run_id }}
           path: logs/
           retention-days: 30
-
-      - name: Debug secret presence
-        run: |
-          echo "Tenant ID set: ${{ secrets.AZURE_TENANT_ID != '' }}"
-          echo "Client ID set: ${{ secrets.AZURE_CLIENT_ID != '' }}"
-          echo "Secret set: ${{ secrets.AZURE_CLIENT_SECRET != '' }}"
