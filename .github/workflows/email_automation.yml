@@ -1,46 +1,50 @@
-# .github/workflows/email_automation.yml
-# Runs the Phase 1 email outreach workflow on a daily schedule.
-# Scheduled for 9 AM MST = 16:00 UTC (accounts for MST = UTC-7).
-# Can also be triggered manually via the Actions tab.
+# .github/workflows/email_automation.yml  —  Phase 2
+# Runs all configured lists in a single daily job.
+# 9 AM MST = 16:00 UTC (MST = UTC-7, no daylight saving).
+#
+# TIMEOUT NOTE
+# With multiple lists the job can run for many hours.
+# Rough formula: (daily_limit × interval_seconds) per list, summed.
+# Example: 2 lists × 25 emails × 300s = ~250 min. Adjust timeout-minutes below.
 
-name: Email Outreach Automation
+name: Email Outreach Automation — Phase 2
 
 on:
   schedule:
-    - cron: "0 16 * * 1-5"   # 9 AM MST, Monday–Friday
-  workflow_dispatch:           # Manual trigger for testing
+    - cron: "0 16 * * 1-5"    # 9 AM MST, Monday–Friday
+  workflow_dispatch:
     inputs:
       dry_run:
-        description: "Dry run (skips actual sends)"
+        description: "Dry run — skip actual sends (tests still run)"
         required: false
         default: "false"
+      list_filter:
+        description: "Run only this list_id (leave blank for all)"
+        required: false
+        default: ""
 
 jobs:
   send-emails:
-    name: Send Outreach Emails
+    name: Send Outreach Emails (all lists)
     runs-on: ubuntu-latest
-    timeout-minutes: 480      # 8-hour cap (25 emails × 5 min + buffer)
+    timeout-minutes: 720      # 12 hours — adjust based on your total send volume
 
     env:
-      # ── Azure / Graph API ─────────────────────────────────────────────────
-      AZURE_TENANT_ID:        ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_CLIENT_ID:        ${{ secrets.AZURE_CLIENT_ID }}
-      AZURE_CLIENT_SECRET:    ${{ secrets.AZURE_CLIENT_SECRET }}
+      # ── Azure / Graph API — shared across all lists ───────────────────────
+      AZURE_TENANT_ID:      ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID:      ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET:  ${{ secrets.AZURE_CLIENT_SECRET }}
 
-      # ── OneDrive ──────────────────────────────────────────────────────────
-      ONEDRIVE_USER_ID:       ${{ secrets.ONEDRIVE_USER_ID }}
-      ONEDRIVE_REMOTE_BASE:   ${{ secrets.ONEDRIVE_REMOTE_BASE }}
+      # ── OneDrive ─────────────────────────────────────────────────────────
+      ONEDRIVE_USER_ID:     ${{ secrets.ONEDRIVE_USER_ID }}
+      ONEDRIVE_REMOTE_BASE: ${{ secrets.ONEDRIVE_REMOTE_BASE }}
 
-      # ── Email Config ──────────────────────────────────────────────────────
-      SENDER_EMAIL:           ${{ secrets.SENDER_EMAIL }}
-      EMAIL_SUBJECT:          ${{ secrets.EMAIL_SUBJECT }}
-      CSV_FILENAME:           ${{ secrets.CSV_FILENAME }}
-      TEMPLATE_FILENAME:      ${{ secrets.TEMPLATE_FILENAME }}
+      # ── Multi-list config (JSON array stored as a single secret) ──────────
+      LISTS_CONFIG:         ${{ secrets.LISTS_CONFIG }}
 
-      # ── Send Settings ─────────────────────────────────────────────────────
-      DAILY_LIMIT:            "25"
-      INTERVAL_SECONDS:       "300"
-      LOG_DIR:                "logs"
+      # ── Optional overrides ────────────────────────────────────────────────
+      LOG_DIR:              "logs"
+      LIST_FILTER:          ${{ github.event.inputs.list_filter }}
 
     steps:
       - name: Checkout repository
@@ -57,42 +61,6 @@ jobs:
 
       - name: Run automated tests
         run: pytest tests/ -v --tb=short
-        
-      - name: Debug token acquisition
-        env:
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-        run: |
-          python - <<'EOF'
-          import os, msal, json
-      
-          tenant_id     = os.environ["AZURE_TENANT_ID"]
-          client_id     = os.environ["AZURE_CLIENT_ID"]
-          client_secret = os.environ["AZURE_CLIENT_SECRET"]
-      
-          print(f"Tenant ID length:  {len(tenant_id)}")
-          print(f"Client ID length:  {len(client_id)}")
-          print(f"Secret length:     {len(client_secret)}")
-          print(f"Tenant ID format valid: {len(tenant_id.strip()) == 36}")
-          print(f"Client ID format valid: {len(client_id.strip()) == 36}")
-      
-          app = msal.ConfidentialClientApplication(
-              client_id,
-              authority=f"https://login.microsoftonline.com/{tenant_id}",
-              client_credential=client_secret,
-          )
-          result = app.acquire_token_for_client(
-              scopes=["https://graph.microsoft.com/.default"]
-          )
-      
-          if "access_token" in result:
-              print("SUCCESS — token acquired")
-              print(f"Token length: {len(result['access_token'])}")
-          else:
-              print("FAILED — full error response:")
-              print(json.dumps(result, indent=2))
-          EOF
 
       - name: Run email workflow
         if: github.event.inputs.dry_run != 'true'
@@ -100,7 +68,7 @@ jobs:
 
       - name: Dry run notice
         if: github.event.inputs.dry_run == 'true'
-        run: echo "DRY RUN — email sends skipped."
+        run: echo "DRY RUN — email sends skipped. Tests passed."
 
       - name: Upload logs as artifact
         if: always()
