@@ -20,18 +20,32 @@ sit alongside the lists:
       "interval_seconds": 300,
       "lists": [
         {
-          "list_id":           "industry_a",
-          "sender_email":      "alice@company.com",
-          "email_subject":     "Quick question for {{company_name}}",
-          "csv_filename":      "industry_a.csv",
-          "template_filename": "industry_a.html"
+          "list_id":           "coffee_shops",
+          "sender_email":      "santino@rivieracoffee.com",
+          "email_subject":     "I just had a quick question about your coffee",
+          "csv_filename":      "coffee_shops.csv",
+          "template_filename": "coffee_shops.html"
         },
         {
-          "list_id":           "industry_b",
-          "sender_email":      "bob@company.com",
-          "email_subject":     "Reaching out to {{company_name}}",
-          "csv_filename":      "industry_b.csv",
-          "template_filename": "industry_b.html"
+          "list_id":           "hotels",
+          "sender_email":      "santino@rivieracoffee.com",
+          "email_subject":     "I just had a quick question for you",
+          "csv_filename":      "hotels.csv",
+          "template_filename": "hotels.html"
+        },
+        {
+          "list_id":           "churches",
+          "sender_email":      "santino@rivieracoffee.com",
+          "email_subject":     "I just wanted to introduce myself",
+          "csv_filename":      "churches.csv",
+          "template_filename": "churches.html"
+        },
+        {
+          "list_id":           "aqhc",
+          "sender_email":      "santino@rivieracoffee.com",
+          "email_subject":     "It's Santino from Affordable Quality Hood Cleaning",
+          "csv_filename":      "aqhc.csv",
+          "template_filename": "aqhc.html"
         }
       ]
     }
