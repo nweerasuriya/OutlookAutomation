@@ -30,7 +30,8 @@ def _make_full_config(daily_limit=24, interval_seconds=300, lists=None) -> dict:
     return {
         "daily_limit":      daily_limit,
         "interval_seconds": interval_seconds,
-        "lists":            lists or [_make_list_entry()],
+        # Explicit None check — [] is a valid value to pass (tests empty-list validation)
+        "lists":            [_make_list_entry()] if lists is None else lists,
     }
 
 
@@ -48,7 +49,17 @@ def _make_list_entry(overrides: dict = None) -> dict:
 
 
 def _write_csv(path: Path, rows: list) -> None:
+    """Write a basic CSV with the three required columns only."""
     fieldnames = [COL_EMAIL, COL_FIRST, COL_COMPANY]
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def _write_csv_with_dates(path: Path, rows: list) -> None:
+    """Write a CSV including next_scheduled_email — required for sort-order tests."""
+    fieldnames = [COL_EMAIL, COL_FIRST, COL_COMPANY, COL_NEXT]
     with open(path, "w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
@@ -189,7 +200,7 @@ class TestGlobalQueueOrdering:
             {COL_EMAIL: "c@x.com", COL_FIRST: "C", COL_COMPANY: "C",
              COL_NEXT: today.isoformat()},
         ]
-        _write_csv(csv_file, rows)
+        _write_csv_with_dates(csv_file, rows)
         mgr = CSVManager(str(csv_file))
         due = mgr.get_due_contacts(limit=None)
 
@@ -211,7 +222,7 @@ class TestGlobalQueueOrdering:
             {COL_EMAIL: "b@x.com", COL_FIRST: "B", COL_COMPANY: "B",
              COL_NEXT: ""},   # blank — should sort first
         ]
-        _write_csv(csv_file, rows)
+        _write_csv_with_dates(csv_file, rows)
         mgr = CSVManager(str(csv_file))
         due = mgr.get_due_contacts(limit=None)
 
