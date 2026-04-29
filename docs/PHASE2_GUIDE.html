@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Phase 2 Transition Guide — Multi-List Email Automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Syne:wght@400;600;700&family=Literata:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0e0e10;
+    --surface: #16161a;
+    --surface2: #1c1c22;
+    --border: #2a2a33;
+    --border2: #363642;
+    --text: #e8e8f0;
+    --muted: #7a7a8e;
+    --faint: #3a3a48;
+    --accent: #7f6af5;
+    --accent-dim: #2d2650;
+    --accent-border: #4a3db0;
+    --green: #3ecf7a;
+    --green-dim: #0e2a1a;
+    --green-border: #1e5a38;
+    --amber: #f5a623;
+    --amber-dim: #2a1e00;
+    --amber-border: #5a3a00;
+    --red: #f05050;
+    --red-dim: #2a0e0e;
+    --red-border: #5a1e1e;
+    --blue: #4aabf5;
+    --blue-dim: #0e1e2a;
+    --blue-border: #1e3a5a;
+    --code: #c8b8ff;
+    --tag-h: #a89aff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Literata', serif;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  /* ── Header ── */
+  .hero {
+    padding: 64px 48px 56px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    background: var(--surface);
+  }
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-tag::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(30px, 4.5vw, 52px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero-sub {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 580px;
+    font-family: 'Literata', serif;
+    font-weight: 300;
+  }
+  .hero-pills {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .pill-accent { background: var(--accent-dim); color: var(--tag-h); border: 1px solid var(--accent-border); }
+  .pill-green  { background: var(--green-dim);  color: var(--green);  border: 1px solid var(--green-border); }
+  .pill-amber  { background: var(--amber-dim);  color: var(--amber);  border: 1px solid var(--amber-border); }
+
+  /* ── Layout ── */
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 48px 100px; }
+
+  /* ── TOC ── */
+  .toc {
+    margin: 48px 0 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .toc-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .toc-list {
+    list-style: none;
+    padding: 12px 0;
+  }
+  .toc-list li a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 6px 20px;
+    text-decoration: none;
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'Literata', serif;
+    transition: color 0.15s;
+  }
+  .toc-list li a:hover { color: var(--text); }
+  .toc-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--faint);
+    min-width: 24px;
+  }
+
+  /* ── Sections ── */
+  .section { margin-top: 72px; }
+  .section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .section h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin: 32px 0 10px;
+    color: var(--text);
+  }
+  p { margin-bottom: 14px; color: var(--muted); font-size: 15px; }
+  p strong { color: var(--text); font-weight: 400; }
+
+  /* ── Change cards ── */
+  .change-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 24px 0;
+  }
+  .change-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .change-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .file-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--code);
+    border: 1px solid var(--border2);
+  }
+  .change-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .type-modified { color: var(--amber); }
+  .type-unchanged { color: var(--green); }
+  .change-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 14px 0;
+    position: relative;
+  }
+  .pre-label {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  code { font-family: 'JetBrains Mono', monospace; }
+  .c  { color: #4a5060; }   /* comment */
+  .k  { color: var(--accent); }   /* keyword / key */
+  .s  { color: var(--green); }    /* string */
+  .v  { color: var(--amber); }    /* value */
+  .t  { color: var(--blue); }     /* type */
+  .hl { background: rgba(127,106,245,0.12); border-left: 2px solid var(--accent); margin: 0 -22px; padding: 0 22px 0 20px; display: block; }
+
+  /* ── Callouts ── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 16px 0;
+    display: flex;
+    gap: 12px;
+    font-family: 'Literata', serif;
+  }
+  .callout-icon { flex-shrink: 0; font-size: 14px; margin-top: 3px; font-style: normal; }
+  .callout.warn    { background: var(--amber-dim); border: 1px solid var(--amber-border); color: #f0c060; }
+  .callout.info    { background: var(--blue-dim);  border: 1px solid var(--blue-border);  color: #80c8f8; }
+  .callout.success { background: var(--green-dim); border: 1px solid var(--green-border); color: #70e8a0; }
+  .callout.tip     { background: var(--accent-dim); border: 1px solid var(--accent-border); color: var(--tag-h); }
+
+  /* ── Diff blocks ── */
+  .diff {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .diff-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 16px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .diff-body { padding: 14px 0; }
+  .diff-line { padding: 1px 16px; display: block; }
+  .diff-add  { background: rgba(62,207,122,0.08); color: var(--green); }
+  .diff-add::before  { content: '+ '; }
+  .diff-del  { background: rgba(240,80,80,0.08);  color: var(--red);   }
+  .diff-del::before  { content: '− '; }
+  .diff-ctx  { color: #4a5060; }
+  .diff-ctx::before  { content: '  '; }
+
+  /* ── Secret table ── */
+  .secret-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 16px 0;
+  }
+  .secret-table th {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 400;
+    background: var(--surface2);
+  }
+  .secret-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    font-size: 13px;
+  }
+  .secret-table tr:last-child td { border-bottom: none; }
+  .secret-table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--code);
+    white-space: nowrap;
+  }
+  .secret-table td:last-child { color: var(--muted); }
+  .badge-keep    { font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 2px 7px; border-radius: 3px; background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); letter-spacing: 0.05em; }
+  .badge-replace { font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 2px 7px; border-radius: 3px; background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber-border); letter-spacing: 0.05em; }
+  .badge-new     { font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 2px 7px; border-radius: 3px; background: var(--accent-dim); color: var(--tag-h); border: 1px solid var(--accent-border); letter-spacing: 0.05em; }
+
+  /* ── Steps ── */
+  .steps { margin: 24px 0; }
+  .step  { display: flex; gap: 18px; margin-bottom: 28px; }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent-border);
+    color: var(--tag-h);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 3px;
+  }
+  .step-body { flex: 1; }
+  .step-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .step-desc  { font-size: 14px; color: var(--muted); }
+
+  /* ── OneDrive layout ── */
+  .tree {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    margin: 14px 0;
+  }
+  .tree .dir  { color: var(--blue); }
+  .tree .file { color: var(--muted); }
+  .tree .new  { color: var(--green); }
+  .tree .note { color: var(--faint); font-size: 11px; }
+
+  hr.div { border: none; border-top: 1px solid var(--border); margin: 56px 0; }
+
+  @media (max-width: 640px) {
+    .hero, .wrap { padding-left: 20px; padding-right: 20px; }
+    .hero { padding-top: 40px; padding-bottom: 36px; }
+    .change-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-tag">Developer Guide</div>
+  <h1>Phase 1 → <em>Phase 2</em><br/>Transition</h1>
+  <p class="hero-sub">Adding multi-list, multi-sender support to the email automation system. A focused guide covering exactly what changes, what stays the same, and how to migrate safely.</p>
+  <div class="hero-pills">
+    <span class="pill pill-accent">multi-list</span>
+    <span class="pill pill-accent">multi-sender</span>
+    <span class="pill pill-green">backward compatible</span>
+    <span class="pill pill-amber">1 new GitHub secret</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ── TOC ── -->
+  <nav class="toc">
+    <div class="toc-header">Contents</div>
+    <ul class="toc-list">
+      <li><a href="#overview"><span class="toc-num">01</span> Overview — what changes and what doesn't</a></li>
+      <li><a href="#architecture"><span class="toc-num">02</span> Architecture shift</a></li>
+      <li><a href="#files"><span class="toc-num">03</span> File-by-file changes</a></li>
+      <li><a href="#lists-config"><span class="toc-num">04</span> The LISTS_CONFIG secret</a></li>
+      <li><a href="#onedrive"><span class="toc-num">05</span> OneDrive folder structure</a></li>
+      <li><a href="#secrets"><span class="toc-num">06</span> GitHub secrets — what to keep, add, remove</a></li>
+      <li><a href="#migration"><span class="toc-num">07</span> Step-by-step migration</a></li>
+      <li><a href="#testing"><span class="toc-num">08</span> Testing the transition</a></li>
+      <li><a href="#timeout"><span class="toc-num">09</span> Timeout &amp; scheduling maths</a></li>
+    </ul>
+  </nav>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="overview">
+    <div class="section-eyebrow">01 — Overview</div>
+    <h2>What changes and what doesn't</h2>
+
+    <p>Phase 2 is a <strong>targeted extension</strong>, not a rewrite. The underlying sending logic, CSV management, template engine, and OneDrive sync are entirely unchanged. The work is concentrated in two files — <code>main.py</code> and <code>email_sender.py</code> — and the GitHub Actions workflow.</p>
+
+    <div class="change-grid">
+      <div class="change-card">
+        <div class="change-card-top">
+          <span class="file-badge">main.py</span>
+          <span class="change-type type-modified">modified</span>
+        </div>
+        <p class="change-desc">Replaced single-list env vars with a <code>LISTS_CONFIG</code> JSON array. Now loops over all configured lists in sequence, handling errors per-list without aborting the whole run.</p>
+      </div>
+      <div class="change-card">
+        <div class="change-card-top">
+          <span class="file-badge">email_sender.py</span>
+          <span class="change-type type-modified">modified</span>
+        </div>
+        <p class="change-desc">Added an optional <code>list_id</code> parameter to <code>run()</code>. Tags every log line with the list name so multi-list log files are easy to read. Subject lines now also support <code>{{placeholders}}</code>.</p>
+      </div>
+      <div class="change-card">
+        <div class="change-card-top">
+          <span class="file-badge">email_automation.yml</span>
+          <span class="change-type type-modified">modified</span>
+        </div>
+        <p class="change-desc">Swapped individual email/CSV/template secrets for <code>LISTS_CONFIG</code>. Timeout increased to 12 hours to accommodate multiple lists. Added a <code>list_filter</code> manual input for targeted testing.</p>
+      </div>
+      <div class="change-card">
+        <div class="change-card-top">
+          <span class="file-badge">csv_manager.py</span>
+          <span class="change-type type-unchanged">unchanged</span>
+        </div>
+        <p class="change-desc">No changes required. Each list has its own CSV file and its own <code>CSVManager</code> instance — isolation is automatic.</p>
+      </div>
+      <div class="change-card">
+        <div class="change-card-top">
+          <span class="file-badge">template_engine.py</span>
+          <span class="change-type type-unchanged">unchanged</span>
+        </div>
+        <p class="change-desc">No changes required. The template resolution logic added in the Phase 1 amendment already handles any filename correctly.</p>
+      </div>
+      <div class="change-card">
+        <div class="change-card-top">
+          <span class="file-badge">onedrive_sync.py</span>
+          <span class="change-type type-unchanged">unchanged</span>
+        </div>
+        <p class="change-desc">No changes required. <code>sync_down</code> already downloads every file in the csv/ and templates/ folders — new lists just mean new files land in the same places.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="architecture">
+    <div class="section-eyebrow">02 — Architecture</div>
+    <h2>Architecture shift</h2>
+
+    <p>In Phase 1, each env var drove a single list. In Phase 2, a single <code>LISTS_CONFIG</code> JSON secret contains an array of list definitions. One GitHub Actions run processes all of them sequentially — one token, one OneDrive sync, then a loop.</p>
+
+    <h3>Why sequential, not parallel?</h3>
+    <p>Parallel jobs would finish faster but create race conditions on the CSV files during the upload phase — two jobs writing the same OneDrive file simultaneously causes data loss. Sequential processing is slower but safe. The 5-minute interval between sends per list already makes the bottleneck the send rate, not the processing.</p>
+
+    <h3>One Azure app, many senders</h3>
+    <p>The <code>Mail.Send</code> application permission granted in Phase 1 covers <strong>all mailboxes in the tenant</strong>. You do not need to create a new Azure app per sender. Every list in <code>LISTS_CONFIG</code> can specify a different <code>sender_email</code> and the same token will work for all of them — provided they are all in the same Microsoft 365 tenant.</p>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <span>If a future client is on a <em>different</em> Microsoft 365 tenant (i.e. a completely separate company), they will need their own Azure app registration, their own set of Azure secrets, and ideally a separate GitHub repository or workflow file. Phase 2 assumes all senders are within a single tenant.</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="files">
+    <div class="section-eyebrow">03 — File-by-file changes</div>
+    <h2>Exactly what changed in each file</h2>
+
+    <h3>main.py — the core change</h3>
+    <p>The single-list environment variables (<code>SENDER_EMAIL</code>, <code>CSV_FILENAME</code>, etc.) are gone. They are replaced by a <code>load_lists_config()</code> function that parses a JSON array from the <code>LISTS_CONFIG</code> secret, then <code>main()</code> loops over each entry.</p>
+
+    <div class="diff">
+      <div class="diff-header">main.py — key structural change</div>
+      <div class="diff-body">
+        <span class="diff-line diff-del">remote_base       = os.environ["ONEDRIVE_REMOTE_BASE"]</span>
+        <span class="diff-line diff-del">csv_filename      = os.environ["CSV_FILENAME"]</span>
+        <span class="diff-line diff-del">template_filename = os.environ["TEMPLATE_FILENAME"]</span>
+        <span class="diff-line diff-del">sender_email      = os.environ["SENDER_EMAIL"]</span>
+        <span class="diff-line diff-del">email_subject     = os.environ["EMAIL_SUBJECT"]</span>
+        <span class="diff-line diff-ctx">&nbsp;</span>
+        <span class="diff-line diff-add">configs = load_lists_config()   # parses LISTS_CONFIG JSON secret</span>
+        <span class="diff-line diff-add">for cfg in configs:             # loop over every list</span>
+        <span class="diff-line diff-add">    send_emails(                # one call per list</span>
+        <span class="diff-line diff-add">        csv_path=...,</span>
+        <span class="diff-line diff-add">        sender_address=cfg["sender_email"],</span>
+        <span class="diff-line diff-add">        list_id=cfg["list_id"],</span>
+        <span class="diff-line diff-add">    )</span>
+      </div>
+    </div>
+
+    <p>A key design decision: a failure in one list is <strong>caught and logged</strong> but does not abort the remaining lists. Every list gets its chance to run regardless of what happened before it.</p>
+
+    <h3>email_sender.py — minor additions</h3>
+    <p>Two small additions only:</p>
+
+    <div class="diff">
+      <div class="diff-header">email_sender.py — run() signature</div>
+      <div class="diff-body">
+        <span class="diff-line diff-ctx">def run(</span>
+        <span class="diff-line diff-ctx">    csv_path: str,</span>
+        <span class="diff-line diff-ctx">    template_path: str,</span>
+        <span class="diff-line diff-ctx">    sender_address: str,</span>
+        <span class="diff-line diff-ctx">    email_subject: str,</span>
+        <span class="diff-line diff-ctx">    daily_limit: int = 25,</span>
+        <span class="diff-line diff-ctx">    interval_seconds: int = 300,</span>
+        <span class="diff-line diff-add">    list_id: str = "default",   # NEW — tags log lines</span>
+        <span class="diff-line diff-ctx">) -> None:</span>
+      </div>
+    </div>
+
+    <div class="diff">
+      <div class="diff-header">email_sender.py — subject line placeholder support</div>
+      <div class="diff-body">
+        <span class="diff-line diff-add">rendered_subject = email_subject \</span>
+        <span class="diff-line diff-add">    .replace("{{first_name}}", first_name) \</span>
+        <span class="diff-line diff-add">    .replace("{{company_name}}", company_name)</span>
+        <span class="diff-line diff-ctx">&nbsp;</span>
+        <span class="diff-line diff-ctx">success = send_email_via_graph(</span>
+        <span class="diff-line diff-del">    subject=email_subject,</span>
+        <span class="diff-line diff-add">    subject=rendered_subject,</span>
+        <span class="diff-line diff-ctx">    ...)</span>
+      </div>
+    </div>
+
+    <h3>email_automation.yml — secrets and timeout</h3>
+    <div class="diff">
+      <div class="diff-header">email_automation.yml — env section</div>
+      <div class="diff-body">
+        <span class="diff-line diff-ctx">AZURE_TENANT_ID:      ${{ secrets.AZURE_TENANT_ID }}</span>
+        <span class="diff-line diff-ctx">AZURE_CLIENT_ID:      ${{ secrets.AZURE_CLIENT_ID }}</span>
+        <span class="diff-line diff-ctx">AZURE_CLIENT_SECRET:  ${{ secrets.AZURE_CLIENT_SECRET }}</span>
+        <span class="diff-line diff-ctx">ONEDRIVE_USER_ID:     ${{ secrets.ONEDRIVE_USER_ID }}</span>
+        <span class="diff-line diff-ctx">ONEDRIVE_REMOTE_BASE: ${{ secrets.ONEDRIVE_REMOTE_BASE }}</span>
+        <span class="diff-line diff-del">SENDER_EMAIL:         ${{ secrets.SENDER_EMAIL }}</span>
+        <span class="diff-line diff-del">EMAIL_SUBJECT:        ${{ secrets.EMAIL_SUBJECT }}</span>
+        <span class="diff-line diff-del">CSV_FILENAME:         ${{ secrets.CSV_FILENAME }}</span>
+        <span class="diff-line diff-del">TEMPLATE_FILENAME:    ${{ secrets.TEMPLATE_FILENAME }}</span>
+        <span class="diff-line diff-add">LISTS_CONFIG:         ${{ secrets.LISTS_CONFIG }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="lists-config">
+    <div class="section-eyebrow">04 — LISTS_CONFIG</div>
+    <h2>The LISTS_CONFIG secret</h2>
+
+    <p>This is the single most important change to understand. The entire multi-list configuration lives in one GitHub secret as a JSON array. Each object in the array defines one list.</p>
+
+    <pre><span class="pre-label">LISTS_CONFIG value (stored as GitHub secret)</span><span class="s">[</span>
+  <span class="s">{</span>
+    <span class="k">"list_id"</span><span class="s">:           </span><span class="v">"industry_a"</span><span class="s">,</span>       <span class="c">// unique identifier, used in logs</span>
+    <span class="k">"sender_email"</span><span class="s">:      </span><span class="v">"alice@company.com"</span><span class="s">,</span> <span class="c">// Outlook address to send from</span>
+    <span class="k">"email_subject"</span><span class="s">:     </span><span class="v">"A note for {{company_name}}"</span><span class="s">,</span>
+    <span class="k">"csv_filename"</span><span class="s">:      </span><span class="v">"industry_a.csv"</span><span class="s">,</span>   <span class="c">// must exist in OneDrive csv/ folder</span>
+    <span class="k">"template_filename"</span><span class="s">: </span><span class="v">"industry_a.html"</span><span class="s">,</span>  <span class="c">// must exist in OneDrive templates/ folder</span>
+    <span class="k">"daily_limit"</span><span class="s">:       </span><span class="v">25</span><span class="s">,</span>                 <span class="c">// optional, default 25</span>
+    <span class="k">"interval_seconds"</span><span class="s">:  </span><span class="v">300</span>                 <span class="c">// optional, default 300 (5 min)</span>
+  <span class="s">}</span><span class="s">,</span>
+  <span class="s">{</span>
+    <span class="k">"list_id"</span><span class="s">:           </span><span class="v">"industry_b"</span><span class="s">,</span>
+    <span class="k">"sender_email"</span><span class="s">:      </span><span class="v">"bob@company.com"</span><span class="s">,</span>
+    <span class="k">"email_subject"</span><span class="s">:     </span><span class="v">"Reaching out"</span><span class="s">,</span>
+    <span class="k">"csv_filename"</span><span class="s">:      </span><span class="v">"industry_b.csv"</span><span class="s">,</span>
+    <span class="k">"template_filename"</span><span class="s">: </span><span class="v">"industry_b.html"</span>
+  <span class="s">}</span>
+<span class="s">]</span></pre>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <span>Write and validate your JSON at <strong>jsonlint.com</strong> before pasting it into GitHub. A single misplaced comma will cause the entire run to fail with a clear parse error in the logs.</span>
+    </div>
+
+    <h3>Adding a new list</h3>
+    <p>To add a third or fourth list later: edit the <code>LISTS_CONFIG</code> secret in GitHub, append a new JSON object to the array, upload the new CSV and template to OneDrive, and the next scheduled run will pick it up automatically. No code changes needed.</p>
+
+    <h3>Removing a list</h3>
+    <p>Remove its entry from the JSON array and the system ignores it from the next run. You can keep the CSV and template files in OneDrive for archival purposes — they'll just never be touched.</p>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="onedrive">
+    <div class="section-eyebrow">05 — OneDrive</div>
+    <h2>OneDrive folder structure</h2>
+
+    <p>The folder structure is unchanged — you're just adding more files to the same folders. <code>onedrive_sync.py</code> downloads every <code>.csv</code> in <code>csv/</code> and every <code>.html</code> in <code>templates/</code>, so new lists are automatically included.</p>
+
+    <div class="tree">
+<span class="dir">email-automation/</span>  <span class="note">← ONEDRIVE_REMOTE_BASE (unchanged)</span>
+├── <span class="dir">csv/</span>
+│   ├── <span class="file">industry_a.csv</span>   <span class="note">← Phase 1 list (renamed from contacts_list1.csv)</span>
+│   ├── <span class="new">industry_b.csv</span>   <span class="note">← new list — just upload to this folder</span>
+│   ├── <span class="new">industry_c.csv</span>   <span class="note">← another new list</span>
+│   └── <span class="dir">backups/</span>          <span class="note">← monthly backups, auto-created</span>
+├── <span class="dir">templates/</span>
+│   ├── <span class="file">industry_a.html</span>  <span class="note">← existing template</span>
+│   ├── <span class="new">industry_b.html</span>  <span class="note">← new template for list B</span>
+│   └── <span class="new">industry_c.html</span>  <span class="note">← new template for list C</span>
+└── <span class="dir">logs/</span>               <span class="note">← unchanged</span>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ</span>
+      <span>The <code>csv_filename</code> and <code>template_filename</code> values in <code>LISTS_CONFIG</code> must match the filenames in OneDrive <strong>exactly</strong>, including case. OneDrive paths are case-sensitive via the Graph API.</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="secrets">
+    <div class="section-eyebrow">06 — GitHub Secrets</div>
+    <h2>GitHub secrets — what to keep, add, and remove</h2>
+
+    <table class="secret-table">
+      <thead>
+        <tr><th>Secret</th><th>Action</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>AZURE_TENANT_ID</td><td><span class="badge-keep">keep</span></td><td>Unchanged — still required</td></tr>
+        <tr><td>AZURE_CLIENT_ID</td><td><span class="badge-keep">keep</span></td><td>Unchanged — still required</td></tr>
+        <tr><td>AZURE_CLIENT_SECRET</td><td><span class="badge-keep">keep</span></td><td>Unchanged — still required</td></tr>
+        <tr><td>ONEDRIVE_USER_ID</td><td><span class="badge-keep">keep</span></td><td>Unchanged — still required</td></tr>
+        <tr><td>ONEDRIVE_REMOTE_BASE</td><td><span class="badge-keep">keep</span></td><td>Unchanged — still required</td></tr>
+        <tr><td>LISTS_CONFIG</td><td><span class="badge-new">new</span></td><td>JSON array defining all lists. See Section 04.</td></tr>
+        <tr><td>SENDER_EMAIL</td><td><span class="badge-replace">remove</span></td><td>Moved into LISTS_CONFIG per list</td></tr>
+        <tr><td>EMAIL_SUBJECT</td><td><span class="badge-replace">remove</span></td><td>Moved into LISTS_CONFIG per list</td></tr>
+        <tr><td>CSV_FILENAME</td><td><span class="badge-replace">remove</span></td><td>Moved into LISTS_CONFIG per list</td></tr>
+        <tr><td>TEMPLATE_FILENAME</td><td><span class="badge-replace">remove</span></td><td>Moved into LISTS_CONFIG per list</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <span>Don't delete the old secrets until after the first Phase 2 run completes successfully. Keep them as a rollback safety net. GitHub will simply ignore secrets that aren't referenced in the workflow.</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="migration">
+    <div class="section-eyebrow">07 — Migration</div>
+    <h2>Step-by-step migration</h2>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Replace the three changed files</div>
+          <p class="step-desc">Copy the Phase 2 versions of <code>src/main.py</code>, <code>src/email_sender.py</code>, and <code>.github/workflows/email_automation.yml</code> over the Phase 1 versions in your repo. The other four source files are untouched.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Add the test file</div>
+          <p class="step-desc">Copy <code>tests/test_phase2.py</code> into your <code>tests/</code> folder alongside the existing Phase 1 tests. Both test files will run together on every workflow trigger.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Rename your existing CSV and template (optional but recommended)</div>
+          <p class="step-desc">If your Phase 1 CSV was called <code>contacts_list1.csv</code>, rename it to something descriptive like <code>industry_a.csv</code> — both in OneDrive and in your <code>LISTS_CONFIG</code> value. This is optional but makes the logs much easier to read as you add more lists.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Build the LISTS_CONFIG JSON</div>
+          <p class="step-desc">Write the JSON array for all your current lists — starting with just the one from Phase 1, then add the new ones. Validate it at <strong>jsonlint.com</strong>. Then go to your GitHub repo → Settings → Secrets → Actions → New secret. Name it <code>LISTS_CONFIG</code> and paste the JSON.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Upload new CSVs and templates to OneDrive</div>
+          <p class="step-desc">For each new list, upload its <code>.csv</code> to the <code>csv/</code> folder and its <code>.html</code> to the <code>templates/</code> folder in OneDrive. File names must match exactly what's in <code>LISTS_CONFIG</code>.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-title">Do a dry run</div>
+          <p class="step-desc">Push the changes, then go to Actions → Email Outreach Automation → Run workflow → set <code>dry_run = true</code>. This runs the full test suite including the Phase 2 tests, then exits without sending anything. Check the logs confirm all lists are detected and the config parses correctly.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-title">Live test with one list only (optional)</div>
+          <p class="step-desc">For extra caution, temporarily set <code>LISTS_CONFIG</code> to just the one Phase 1 list you know works, do a live run, confirm it sends and updates the CSV. Then expand back to all lists.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <div class="step-title">Remove old secrets</div>
+          <p class="step-desc">Once you've confirmed a full multi-list run works cleanly, delete <code>SENDER_EMAIL</code>, <code>EMAIL_SUBJECT</code>, <code>CSV_FILENAME</code>, and <code>TEMPLATE_FILENAME</code> from GitHub Secrets. They're no longer referenced anywhere.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="testing">
+    <div class="section-eyebrow">08 — Testing</div>
+    <h2>Testing the transition</h2>
+
+    <p>The Phase 2 test file (<code>tests/test_phase2.py</code>) covers:</p>
+
+    <h3>Config validation</h3>
+    <p>Tests that <code>load_lists_config()</code> correctly rejects missing env vars, invalid JSON, empty arrays, and configs missing any required key. Every required key is tested individually via <code>@pytest.mark.parametrize</code>.</p>
+
+    <h3>Template resolution</h3>
+    <p>Confirms the OneDrive-synced copy takes priority over the repo sample, the fallback works when OneDrive copy is missing, and a clear error is raised when neither exists.</p>
+
+    <h3>Subject placeholder substitution</h3>
+    <p>Verifies that <code>{{company_name}}</code> and <code>{{first_name}}</code> in subject lines are filled correctly per contact.</p>
+
+    <h3>CSV isolation</h3>
+    <p>Confirms that two CSVs load independently and that saving one does not affect the other — important for catching any accidental shared state.</p>
+
+    <p>Run locally at any time with:</p>
+    <pre>pytest tests/ -v --tb=short</pre>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="section" id="timeout">
+    <div class="section-eyebrow">09 — Scheduling</div>
+    <h2>Timeout &amp; scheduling maths</h2>
+
+    <p>With multiple lists, the GitHub Actions job runs much longer. Use this formula to set <code>timeout-minutes</code> appropriately:</p>
+
+    <pre><span class="c"># Time per list (minutes)</span>
+time_per_list = (daily_limit × interval_seconds) / 60
+
+<span class="c"># Total job time</span>
+total = sum(time_per_list for each list) + <span class="v">30</span>  <span class="c"># +30 min buffer</span>
+
+<span class="c"># Example: 3 lists × 25 emails × 300s each</span>
+(25 × 300) / 60 = <span class="v">125</span> min per list
+125 × 3 + 30    = <span class="v">405</span> min total  → set timeout-minutes: <span class="v">420</span></pre>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠</span>
+      <span>GitHub Actions has a hard limit of <strong>6 hours (360 minutes)</strong> for free accounts and <strong>35 days</strong> for paid — but in practice jobs over 6 hours are unusual. If your total send time genuinely exceeds 6 hours, consider splitting into two scheduled workflow files that run at different times of day.</span>
+    </div>
+
+    <h3>Staggering lists across the day</h3>
+    <p>An alternative to running all lists in one long job is to create separate workflow files with different cron times — e.g. list A at 9 AM, list B at 11 AM. This keeps individual jobs short, makes logs easier to read, and means one list failing doesn't delay the others. The trade-off is more workflow files to maintain. For 2–3 lists the single-job approach is simpler; beyond that, split workflows are worth considering.</p>
+
+    <div class="callout success">
+      <span class="callout-icon">✓</span>
+      <span>Everything built in Phase 1 is fully compatible with Phase 3 (unsubscribe/bounce handling) and Phase 4 (dashboard). No structural changes are needed to support those additions from here.</span>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+</body>
+</html>

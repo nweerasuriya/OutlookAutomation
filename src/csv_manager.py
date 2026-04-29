@@ -111,11 +111,16 @@ class CSVManager:
 
     # ── Querying ──────────────────────────────────────────────────────────────
 
-    def get_due_contacts(self, limit: int = 25) -> List[Dict]:
+    def get_due_contacts(self, limit: int | None = 25) -> List[Dict]:
         """
-        Return up to `limit` contacts whose next_scheduled_email is on or
-        before today and who are not unsubscribed, bounced, or previously failed.
+        Return due contacts whose next_scheduled_email is on or before today
+        and who are not unsubscribed, bounced, or previously failed.
         Sorted earliest-scheduled first.
+
+        Args:
+            limit: Maximum contacts to return. Pass None to return all due
+                   contacts without a cap — used by the global queue in main.py
+                   so the daily limit can be applied across all lists together.
         """
         today = datetime.now(timezone.utc).date()
         due: List[Dict] = []
@@ -150,9 +155,13 @@ class CSVManager:
 
         # Sort earliest-scheduled first (empty dates sort first)
         due.sort(key=lambda r: r.get(COL_NEXT) or "")
-        selected = due[:limit]
+
+        if limit is None:
+            log.info("Found %d due contact(s) (no cap)", len(due))
+            return due
+
         log.info("Found %d due contact(s); capping at %d", len(due), limit)
-        return selected
+        return due[:limit]
 
     # ── Updating ──────────────────────────────────────────────────────────────
 

@@ -1,7 +1,15 @@
 """
-email_sender.py
+email_sender.py  —  Phase 2
 Core email sending module using Microsoft Graph API (OAuth2).
-Reads from CSV, sends templated emails, updates tracking fields.
+
+Changes from Phase 1
+--------------------
+- `run()` now accepts an optional `list_id` parameter used to tag every log
+  line with which list is being processed. This makes multi-list log files
+  easy to read and filter.
+- `get_access_token()` is unchanged — all lists share the same Azure app
+  registration credentials, so one token covers all senders.
+- All other logic is identical to Phase 1.
 """
 
 import os
@@ -16,13 +24,12 @@ import requests
 from csv_manager import CSVManager
 from template_engine import TemplateEngine
 
-# ── Logging ──────────────────────────────────────────────────────────────────
 LOG_DIR = Path(os.environ.get("LOG_DIR", "logs"))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(message)s",
+    format="%(asctime)s  %(levelname)-8s  [%(list_id)s]  %(message)s",
     handlers=[
         logging.FileHandler(LOG_DIR / f"email_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"),
         logging.StreamHandler(),
@@ -35,9 +42,8 @@ log = logging.getLogger(__name__)
 
 def get_access_token() -> str:
     """
-    Acquire an OAuth2 access token via the client-credentials flow.
-    Required env vars:
-        AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET
+    Acquire an OAuth2 token via client-credentials flow.
+    One token covers all sender addresses within the same tenant.
     """
     tenant_id     = os.environ["AZURE_TENANT_ID"]
     client_id     = os.environ["AZURE_CLIENT_ID"]
@@ -63,11 +69,10 @@ def send_email_via_graph(
     to_address: str,
     subject: str,
     html_body: str,
+    list_id: str = "unknown",
 ) -> bool:
-    """
-    Send one email through the Microsoft Graph /sendMail endpoint.
-    Returns True on success, False on failure.
-    """
+    """Send one email. Returns True on success, False on failure."""
+    extra = {"list_id": list_id}
     url = f"https://graph.microsoft.com/v1.0/users/{sender_address}/sendMail"
     headers = {
         "Authorization": f"Bearer {token}",
@@ -85,17 +90,18 @@ def send_email_via_graph(
     resp = requests.post(url, headers=headers, json=payload, timeout=30)
 
     if resp.status_code == 202:
-        log.info("✓ Sent to %s", to_address)
+        log.info("✓ Sent to %s", to_address, extra=extra)
         return True
 
     log.error(
         "✗ Failed to send to %s — HTTP %s: %s",
         to_address, resp.status_code, resp.text[:300],
+        extra=extra,
     )
     return False
 
 
-# ── Main run ─────────────────────────────────────────────────────────────────
+# ── Main run ──────────────────────────────────────────────────────────────────
 
 def run(
     csv_path: str,
@@ -103,28 +109,34 @@ def run(
     sender_address: str,
     email_subject: str,
     daily_limit: int = 25,
-    interval_seconds: int = 300,   # 5 minutes between sends
+    interval_seconds: int = 300,
+    list_id: str = "default",        # NEW in Phase 2
 ) -> None:
     """
-    Main entry point called by the GitHub Actions workflow.
+    Send emails for one list.
 
     Args:
-        csv_path:         Path to the contact CSV file.
-        template_path:    Path to the HTML email template.
+        csv_path:         Path to the contact CSV.
+        template_path:    Path to the HTML template.
         sender_address:   The Outlook address to send FROM.
-        email_subject:    Subject line for every email in this run.
-        daily_limit:      Maximum emails to send in one run.
-        interval_seconds: Pause between sends (seconds).
+        email_subject:    Subject line (may include {{placeholders}}).
+        daily_limit:      Max emails to send in this run.
+        interval_seconds: Pause between sends.
+        list_id:          Identifier for this list, used in log tagging.
     """
-    log.info("=== Email Automation Run Starting ===")
-    log.info("CSV: %s | Template: %s | Sender: %s", csv_path, template_path, sender_address)
+    extra = {"list_id": list_id}
+    log.info(
+        "=== Starting list '%s' | CSV: %s | Sender: %s ===",
+        list_id, csv_path, sender_address,
+        extra=extra,
+    )
 
     csv_mgr  = CSVManager(csv_path)
     tmpl_eng = TemplateEngine(template_path)
     token    = get_access_token()
 
     contacts = csv_mgr.get_due_contacts(limit=daily_limit)
-    log.info("%d contact(s) due for email today.", len(contacts))
+    log.info("%d contact(s) due.", len(contacts), extra=extra)
 
     sent_count = 0
 
@@ -134,7 +146,11 @@ def run(
         company_name = contact["company_name"]
         row_index    = contact["_row_index"]
 
-        # Build the personalised email body
+        # Subject lines can also use {{placeholders}}
+        rendered_subject = email_subject \
+            .replace("{{first_name}}", first_name) \
+            .replace("{{company_name}}", company_name)
+
         html_body = tmpl_eng.render(
             first_name=first_name,
             company_name=company_name,
@@ -144,8 +160,9 @@ def run(
             token=token,
             sender_address=sender_address,
             to_address=email_addr,
-            subject=email_subject,
+            subject=rendered_subject,
             html_body=html_body,
+            list_id=list_id,
         )
 
         if success:
@@ -154,34 +171,13 @@ def run(
         else:
             csv_mgr.flag_failure(row_index)
 
-        # Wait between sends (skip pause after the last one)
         if i < len(contacts) - 1:
-            log.info("Waiting %ds before next send…", interval_seconds)
+            log.info("Waiting %ds…", interval_seconds, extra=extra)
             time.sleep(interval_seconds)
 
     csv_mgr.save()
-    log.info("=== Run complete — %d/%d sent ===", sent_count, len(contacts))
-
-
-# ── CLI entry point ───────────────────────────────────────────────────────────
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Send outreach emails via Microsoft Graph.")
-    parser.add_argument("--csv",      required=True,  help="Path to contact CSV")
-    parser.add_argument("--template", required=True,  help="Path to HTML template")
-    parser.add_argument("--sender",   required=True,  help="From address (Outlook)")
-    parser.add_argument("--subject",  required=True,  help="Email subject line")
-    parser.add_argument("--limit",    type=int, default=25, help="Max emails per run")
-    parser.add_argument("--interval", type=int, default=300, help="Seconds between sends")
-    args = parser.parse_args()
-
-    run(
-        csv_path=args.csv,
-        template_path=args.template,
-        sender_address=args.sender,
-        email_subject=args.subject,
-        daily_limit=args.limit,
-        interval_seconds=args.interval,
+    log.info(
+        "=== List '%s' complete — %d/%d sent ===",
+        list_id, sent_count, len(contacts),
+        extra=extra,
     )
