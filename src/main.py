@@ -8,7 +8,14 @@ How it works
 All due contacts from every list are collected, merged, and sorted globally
 by next_scheduled_email (earliest first, blanks first). The global daily_limit
 is then applied to that combined pool — so the most overdue contacts across
-all industries are prioritised, regardless of which list they come from.
+all industries/cities are prioritised, regardless of which list they come from.
+
+City vs industry lists
+----------------------
+Lists scoped to a city (e.g. "Tucson") store the city value in a "city" column
+in their CSV. send_one reads that column from each contact row and passes it to
+the template engine as {{city}}. Industry lists simply omit the column (or leave
+it blank) and {{city}} resolves to an empty string — no config change required.
 
 LISTS_CONFIG format
 -------------------
@@ -20,11 +27,20 @@ sit alongside the lists:
       "interval_seconds": 300,
       "lists": [
         {
-          "list_id":           "coffee_shops",
-          "sender_email":      "santino@rivieracoffee.com",
-          "email_subject":     "I just had a quick question about your coffee",
-          "csv_filename":      "coffee_shops.csv",
-          "template_filename": "coffee_shops.html"
+          "list_id":                     "coffee_shops",
+          "sender_email":                "santino@rivieracoffee.com",
+          "email_subject":               "I just had a quick question about your coffee",
+          "csv_filename":                "coffee_shops.csv",
+          "template_filename":           "coffee_shops.html",
+          "reschedule_after_first_send": false
+        },
+        {
+          "list_id":                     "Tucson",
+          "sender_email":                "example@example.com",
+          "email_subject":               "I just had a quick question",
+          "csv_filename":                "Tucson.csv",
+          "template_filename":           "Tucson.html",
+          "reschedule_after_first_send": false
         },
         {
           "list_id":           "hotels",
@@ -32,23 +48,18 @@ sit alongside the lists:
           "email_subject":     "I just had a quick question for you",
           "csv_filename":      "hotels.csv",
           "template_filename": "hotels.html"
-        },
-        {
-          "list_id":           "churches",
-          "sender_email":      "santino@rivieracoffee.com",
-          "email_subject":     "I just wanted to introduce myself",
-          "csv_filename":      "churches.csv",
-          "template_filename": "churches.html"
-        },
-        {
-          "list_id":           "aqhc",
-          "sender_email":      "santino@rivieracoffee.com",
-          "email_subject":     "It's Santino from Affordable Quality Hood Cleaning",
-          "csv_filename":      "aqhc.csv",
-          "template_filename": "aqhc.html"
         }
       ]
     }
+
+Optional list-level keys
+-------------------------
+    reschedule_after_first_send — default true; set false to place a
+                                  hold_for_review flag on a contact after
+                                  their first send so you can review responses
+                                  before they re-enter the queue. The
+                                  next_scheduled_email date is still written
+                                  so it's ready the moment you clear the hold.
 
 Required GitHub secrets
 -----------------------
@@ -92,6 +103,11 @@ REQUIRED_LIST_KEYS = [
     "csv_filename", "template_filename",
 ]
 
+# Optional keys and their defaults — extend here for future config options
+LIST_DEFAULTS: dict = {
+    "reschedule_after_first_send": True,  # False = hold row after first send
+}
+
 
 # ── Config helpers ────────────────────────────────────────────────────────────
 
@@ -99,6 +115,7 @@ def load_lists_config() -> dict:
     """
     Parse LISTS_CONFIG from the environment.
     Returns a dict with keys: daily_limit, interval_seconds, lists.
+    Each list entry is guaranteed to contain all LIST_DEFAULTS keys.
     """
     raw = os.environ.get("LISTS_CONFIG", "")
     if not raw:
@@ -128,6 +145,9 @@ def load_lists_config() -> dict:
         missing = [k for k in REQUIRED_LIST_KEYS if k not in cfg]
         if missing:
             raise ValueError(f"List config #{i} is missing keys: {missing}")
+        # Backfill optional keys with defaults so downstream code can rely on them
+        for key, default in LIST_DEFAULTS.items():
+            cfg.setdefault(key, default)
 
     return config
 
@@ -157,6 +177,26 @@ def _resolve_template(local_base: Path, filename: str, list_id: str) -> Path:
     )
 
 
+# ── Hold logic ────────────────────────────────────────────────────────────────
+
+def _should_hold(contact: dict, cfg: dict) -> bool:
+    """
+    Returns True if this send should park the contact under hold_for_review.
+
+    A hold is applied when ALL of the following are true:
+      - reschedule_after_first_send is False for this list
+      - this is the contact's first-ever send (emails_sent_count == 0)
+
+    Once held, the contact won't re-enter the queue until hold_for_review
+    is manually set to false in the CSV. The next_scheduled_email date is
+    still written so it's ready the moment the hold is cleared.
+    """
+    if cfg.get("reschedule_after_first_send", True):
+        return False  # list uses normal auto-scheduling — never hold
+    sent_count = int(contact.get("emails_sent_count", "0") or 0)
+    return sent_count == 0  # only hold on the very first send
+
+
 # ── Single-contact send ───────────────────────────────────────────────────────
 
 def send_one(
@@ -177,14 +217,18 @@ def send_one(
     company_name = contact["company_name"]
     email_addr   = contact["email_address"]
     row_index    = contact["_row_index"]
+    # Read city from the CSV row; empty string for industry lists without a city column
+    city         = contact.get("city", "")
 
     rendered_subject = cfg["email_subject"] \
         .replace("{{first_name}}", first_name) \
-        .replace("{{company_name}}", company_name)
+        .replace("{{company_name}}", company_name) \
+        .replace("{{city}}", city)
 
     html_body = tmpl_eng.render(
         first_name=first_name,
         company_name=company_name,
+        city=city,
     )
 
     success = send_email_via_graph(
@@ -197,7 +241,15 @@ def send_one(
     )
 
     if success:
-        mgr.mark_sent(row_index)
+        hold = _should_hold(contact, cfg)
+        mgr.mark_sent(row_index, hold_for_review=hold)
+        if hold:
+            log.info(
+                "hold_for_review set for %s — next date scheduled but "
+                "contact will not re-queue until hold is cleared.",
+                email_addr,
+                extra=extra,
+            )
     else:
         mgr.flag_failure(row_index)
 
@@ -233,8 +285,8 @@ def main() -> None:
     managers: dict[str, dict] = {}   # list_id -> {mgr, cfg, tmpl_eng}
 
     for cfg in lists:
-        list_id  = cfg["list_id"]
-        csv_path = local_base / "csv" / cfg["csv_filename"]
+        list_id   = cfg["list_id"]
+        csv_path  = local_base / "csv" / cfg["csv_filename"]
         tmpl_path = _resolve_template(local_base, cfg["template_filename"], list_id)
 
         managers[list_id] = {

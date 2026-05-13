@@ -33,6 +33,7 @@ COL_RESP_COUNT = "response_count"
 COL_UNSUB      = "unsubscribed"
 COL_BOUNCE     = "bounce_flagged"
 COL_FAILED     = "send_failed"
+COL_HOLD       = "hold_for_review" 
 
 REQUIRED_COLS = [COL_EMAIL, COL_FIRST, COL_COMPANY]
 
@@ -83,6 +84,7 @@ class CSVManager:
             COL_UNSUB:      "false",
             COL_BOUNCE:     "false",
             COL_FAILED:     "false",
+            COL_HOLD:       "false",
         }
         for col, default in defaults.items():
             row.setdefault(col, default)
@@ -134,6 +136,9 @@ class CSVManager:
             # Don't retry ones that failed last time (needs manual review)
             if row.get(COL_FAILED, "").lower() in ("true", "1", "yes"):
                 continue
+            # Skip ones manually flagged for hold (e.g. pending review)
+            if row.get(COL_HOLD,   "").lower() in ("true", "1", "yes"):
+                continue
 
             scheduled_raw = row.get(COL_NEXT, "").strip()
 
@@ -165,18 +170,35 @@ class CSVManager:
 
     # ── Updating ──────────────────────────────────────────────────────────────
 
-    def mark_sent(self, row_index: int) -> None:
-        """Record a successful send and schedule next contact in 21 days."""
+    def mark_sent(self, row_index: int, hold_for_review: bool = False) -> None:
+        """
+        Record a successful send and schedule next contact in 21 days.
+
+        Args:
+            row_index:       Internal row identifier.
+            hold_for_review: If True, set hold_for_review = true on the row
+                             so it won't re-enter the queue until manually
+                             cleared. The next_scheduled_email is still written
+                             so the date is ready when the hold is lifted.
+        """
         row = self._find_row(row_index)
-        now = datetime.now(timezone.utc).isoformat()
-        next_date = (datetime.now(timezone.utc) + timedelta(days=RESCHEDULE_DAYS)).date().isoformat()
+        now       = datetime.now(timezone.utc).isoformat()
+        next_date = (
+            datetime.now(timezone.utc) + timedelta(days=RESCHEDULE_DAYS)
+        ).date().isoformat()
 
         row[COL_LAST_SENT]  = now
         row[COL_NEXT]       = next_date
         row[COL_SENT_COUNT] = str(int(row.get(COL_SENT_COUNT, "0") or 0) + 1)
-        row[COL_FAILED]     = "false"   # clear any previous failure flag
+        row[COL_FAILED]     = "false"
+        row[COL_HOLD]       = "true" if hold_for_review else "false"   # NEW
 
-        log.info("Marked sent for %s — next scheduled %s", row.get(COL_EMAIL), next_date)
+        log.info(
+            "Marked sent for %s — next scheduled %s%s",
+            row.get(COL_EMAIL),
+            next_date,
+            " [held for review]" if hold_for_review else "",
+        )
 
     def flag_failure(self, row_index: int) -> None:
         """Flag a row as failed so it can be manually reviewed."""
