@@ -28,7 +28,7 @@ sit alongside the lists:
       "lists": [
         {
           "list_id":                     "coffee_shops",
-          "sender_email":                "santino@rivieracoffee.com",
+          "sender_email":                "example@example.com",
           "email_subject":               "I just had a quick question about your coffee",
           "csv_filename":                "coffee_shops.csv",
           "template_filename":           "coffee_shops.html",
@@ -43,11 +43,11 @@ sit alongside the lists:
           "reschedule_after_first_send": false
         },
         {
-          "list_id":           "hotels",
-          "sender_email":      "santino@rivieracoffee.com",
-          "email_subject":     "I just had a quick question for you",
-          "csv_filename":      "hotels.csv",
-          "template_filename": "hotels.html"
+          "list_id":                        "hotels",
+          "sender_email":                   "example@example.com",
+          "email_subject":                  "I just had a quick question for you",
+          "csv_filename":                   "hotels.csv",
+          "template_filename":              "hotels.html"
         }
       ]
     }
