@@ -68,7 +68,7 @@ class CSVManager:
 
         # Make sure tracking columns exist in fieldnames list
         for col in [COL_NEXT, COL_LAST_SENT, COL_SENT_COUNT,
-                    COL_RESP_COUNT, COL_UNSUB, COL_BOUNCE, COL_FAILED]:
+                    COL_RESP_COUNT, COL_UNSUB, COL_BOUNCE, COL_FAILED, COL_HOLD]:
             if col not in self.fieldnames:
                 self.fieldnames.append(col)
 
