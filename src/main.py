@@ -87,7 +87,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from onedrive_sync import sync_down, sync_up
 from email_sender import get_access_token, send_email_via_graph
 from template_engine import TemplateEngine
-from csv_manager import CSVManager
+from csv_manager import CSVManager, RESCHEDULE_DAYS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -243,13 +243,13 @@ def send_one(
     if success:
         hold = _should_hold(contact, cfg)
         mgr.mark_sent(row_index, hold_for_review=hold)
-        if hold:
-            log.info(
-                "hold_for_review set for %s — next date scheduled but "
-                "contact will not re-queue until hold is cleared.",
-                email_addr,
-                extra=extra,
-            )
+        log.info(
+            "Marked sent for %s — next scheduled in %d days%s",
+            email_addr,
+            RESCHEDULE_DAYS,
+            " [held for review]" if hold else "",
+            extra=extra,
+        )
     else:
         mgr.flag_failure(row_index)
 
@@ -320,12 +320,20 @@ def main() -> None:
 
     # Step 4 — Send
     log.info("Step 4: Sending emails", extra=sys_extra)
-    token      = get_access_token()
-    sent_count = 0
+    sent_count  = 0
+    token       = get_access_token()
+    token_time  = time.monotonic()
+    TOKEN_TTL   = 45 * 60  # refresh every 45 min, well within the 60 min expiry
 
     for i, contact in enumerate(queue):
         list_id = contact["_list_id"]
         entry   = managers[list_id]
+
+        # Proactively refresh before the token goes stale
+        if time.monotonic() - token_time > TOKEN_TTL:
+            log.info("Refreshing OAuth token…", extra=sys_extra)
+            token      = get_access_token()
+            token_time = time.monotonic()
 
         success = send_one(
             token=token,
