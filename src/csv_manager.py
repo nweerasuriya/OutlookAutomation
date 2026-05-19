@@ -20,7 +20,7 @@ from typing import List, Dict, Any
 log = logging.getLogger(__name__)
 
 # Days between follow-up emails
-RESCHEDULE_DAYS = 21
+RESCHEDULE_DAYS = 30
 
 # CSV column names (what we write / expect)
 COL_EMAIL      = "email_address"
@@ -192,13 +192,6 @@ class CSVManager:
         row[COL_SENT_COUNT] = str(int(row.get(COL_SENT_COUNT, "0") or 0) + 1)
         row[COL_FAILED]     = "false"
         row[COL_HOLD]       = "true" if hold_for_review else "false"   # NEW
-
-        log.info(
-            "Marked sent for %s — next scheduled %s%s",
-            row.get(COL_EMAIL),
-            next_date,
-            " [held for review]" if hold_for_review else "",
-        )
 
     def flag_failure(self, row_index: int) -> None:
         """Flag a row as failed so it can be manually reviewed."""
