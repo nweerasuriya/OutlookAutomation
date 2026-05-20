@@ -87,7 +87,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from onedrive_sync import sync_down, sync_up
 from email_sender import get_access_token, send_email_via_graph
 from template_engine import TemplateEngine
-from csv_manager import CSVManager, RESCHEDULE_DAYS
+from csv_manager import CSVManager, RESCHEDULE_DAYS, COL_EMAIL, COL_FIRST, COL_COMPANY, COL_CITY
 
 logging.basicConfig(
     level=logging.INFO,
@@ -107,7 +107,6 @@ REQUIRED_LIST_KEYS = [
 LIST_DEFAULTS: dict = {
     "reschedule_after_first_send": True,  # False = hold row after first send
 }
-
 
 # ── Config helpers ────────────────────────────────────────────────────────────
 
@@ -213,12 +212,12 @@ def send_one(
     """
     list_id      = cfg["list_id"]
     extra        = {"list_id": list_id}
-    first_name   = contact["first_name"]
-    company_name = contact["company_name"]
-    email_addr   = contact["email_address"]
+    first_name   = contact[COL_FIRST]
+    company_name = contact[COL_COMPANY]
+    email_addr   = contact[COL_EMAIL]
     row_index    = contact["_row_index"]
     # Read city from the CSV row; empty string for industry lists without a city column
-    city         = contact.get("city", "")
+    city         = contact.get(COL_CITY, "")
 
     rendered_subject = cfg["email_subject"] \
         .replace("{{first_name}}", first_name) \
