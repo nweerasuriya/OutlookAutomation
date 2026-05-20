@@ -12,7 +12,6 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-import pandas as pd
 
 import pytest
 
@@ -59,7 +58,6 @@ class TestCSVManager:
         _write_csv(csv_file, [
             {"Email": "a@x.com", "First Name": "Alice", "Company Name": "Acme"},
         ])
-        print(f"CSV file content: {pd.read_csv(csv_file).columns.tolist()}")
         mgr = CSVManager(str(csv_file))
         assert len(mgr.rows) == 1
         assert mgr.rows[0]["first_name"] == "Alice"
