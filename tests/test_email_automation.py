@@ -12,6 +12,7 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+import pandas as pd
 
 import pytest
 
@@ -19,18 +20,21 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from csv_manager import (
-    COL_BOUNCE, COL_EMAIL, COL_FAILED, COL_FIRST, COL_COMPANY,
+    COL_BOUNCE, COL_FAILED,
     COL_NEXT, COL_LAST_SENT, COL_SENT_COUNT, COL_UNSUB,
     CSVManager,
 )
 from template_engine import TemplateEngine
 
-
+COL_EMAIL = "Email"
+COL_FIRST = "First Name"
+COL_COMPANY = "Company Name"
+COL_CITY = "City"
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
 def _write_csv(path: Path, rows: list[dict]) -> None:
     fieldnames = [
-        COL_EMAIL, COL_FIRST, COL_COMPANY, COL_NEXT,
+        COL_EMAIL, COL_FIRST, COL_COMPANY, COL_CITY, COL_NEXT,
         COL_LAST_SENT, COL_SENT_COUNT, COL_UNSUB, COL_BOUNCE, COL_FAILED,
         "response_count",
     ]
@@ -53,11 +57,12 @@ class TestCSVManager:
     def test_loads_valid_csv(self, tmp_path):
         csv_file = tmp_path / "contacts.csv"
         _write_csv(csv_file, [
-            {COL_EMAIL: "a@x.com", COL_FIRST: "Alice", COL_COMPANY: "Acme"},
+            {"Email": "a@x.com", "First Name": "Alice", "Company Name": "Acme"},
         ])
+        print(f"CSV file content: {pd.read_csv(csv_file).columns.tolist()}")
         mgr = CSVManager(str(csv_file))
         assert len(mgr.rows) == 1
-        assert mgr.rows[0][COL_FIRST] == "Alice"
+        assert mgr.rows[0]["first_name"] == "Alice"
 
     def test_raises_on_missing_file(self, tmp_path):
         with pytest.raises(FileNotFoundError):
@@ -255,8 +260,8 @@ class TestIntegration:
 
         contact = mgr.get_due_contacts(limit=1)[0]
         html = eng.render(
-            first_name=contact[COL_FIRST],
-            company_name=contact[COL_COMPANY],
+            first_name=contact["first_name"],
+            company_name=contact["company_name"],
         )
         assert "Eve" in html
         assert "EveCorps" in html

@@ -40,7 +40,7 @@ class TemplateEngine:
         Return the template with all placeholders replaced.
         Unknown placeholders are left as-is and logged as warnings.
         """
-        today = datetime.now(timezone.utc).strftime("%B %-d, %Y")
+        today = datetime.now(timezone.utc).strftime("%B %d, %Y").replace(" 0", " ")
 
         variables: dict = {
             "first_name":   first_name.strip(),

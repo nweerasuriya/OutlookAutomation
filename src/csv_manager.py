@@ -23,9 +23,10 @@ log = logging.getLogger(__name__)
 RESCHEDULE_DAYS = 30
 
 # CSV column names (what we write / expect)
-COL_EMAIL      = "Email"
-COL_FIRST      = "First Name"
-COL_COMPANY    = "Company Name"
+COL_EMAIL      = "email"
+COL_FIRST      = "first_name"
+COL_COMPANY    = "company_name"
+COL_CITY       = "city"  # optional column for city-specifiists
 COL_NEXT       = "next_scheduled_email"
 COL_LAST_SENT  = "last_sent_datetime"
 COL_SENT_COUNT = "emails_sent_count"
