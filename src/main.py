@@ -108,6 +108,10 @@ LIST_DEFAULTS: dict = {
     "reschedule_after_first_send": True,  # False = hold row after first send
 }
 
+# CSV column names (what we write / expect)
+COL_EMAIL      = "Email"
+COL_FIRST      = "First Name"
+COL_COMPANY    = "Company Name"
 
 # ── Config helpers ────────────────────────────────────────────────────────────
 
@@ -213,9 +217,9 @@ def send_one(
     """
     list_id      = cfg["list_id"]
     extra        = {"list_id": list_id}
-    first_name   = contact["first_name"]
-    company_name = contact["company_name"]
-    email_addr   = contact["email_address"]
+    first_name   = contact[COL_FIRST]
+    company_name = contact[COL_COMPANY]
+    email_addr   = contact[COL_EMAIL]
     row_index    = contact["_row_index"]
     # Read city from the CSV row; empty string for industry lists without a city column
     city         = contact.get("city", "")
