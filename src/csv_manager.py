@@ -18,6 +18,10 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 log = logging.getLogger(__name__)
+_handler = logging.StreamHandler()
+_handler.setFormatter(logging.Formatter("%(asctime)s  %(levelname)-8s  %(message)s"))
+log.addHandler(_handler)
+log.propagate = False
 
 # Days between follow-up emails
 RESCHEDULE_DAYS = 30
