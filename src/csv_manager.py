@@ -53,19 +53,35 @@ class CSVManager:
         if not self.csv_path.exists():
             raise FileNotFoundError(f"CSV not found: {self.csv_path}")
 
-        with open(self.csv_path, newline="", encoding="utf-8-sig") as fh:
-            reader = csv.DictReader(fh)
-            raw_fieldnames = reader.fieldnames or []
-            # Normalise header names to lowercase with underscores
-            self.fieldnames = [h.strip().lower().replace(" ", "_") for h in raw_fieldnames]
-            for i, row in enumerate(reader):
-                normalised = {
-                    k.strip().lower().replace(" ", "_"): v.strip()
-                    for k, v in row.items()
-                }
-                normalised["_row_index"] = i   # internal tracking key
-                self._ensure_tracking_cols(normalised)
-                self.rows.append(normalised)
+        try:
+            with open(self.csv_path, newline="", encoding="utf-8-sig") as fh:
+                reader = csv.DictReader(fh)
+                raw_fieldnames = reader.fieldnames or []
+                # Normalise header names to lowercase with underscores
+                self.fieldnames = [h.strip().lower().replace(" ", "_") for h in raw_fieldnames]
+                for i, row in enumerate(reader):
+                    normalised = {
+                        k.strip().lower().replace(" ", "_"): v.strip()
+                        for k, v in row.items()
+                    }
+                    normalised["_row_index"] = i   # internal tracking key
+                    self._ensure_tracking_cols(normalised)
+                    self.rows.append(normalised)
+        
+        except UnicodeDecodeError:
+            # Use windows-1252 encoding as fallback for legacy CSVs with special chars
+            with open(self.csv_path, newline="", encoding="windows-1252") as fh:
+                reader = csv.DictReader(fh)
+                raw_fieldnames = reader.fieldnames or []
+                self.fieldnames = [h.strip().lower().replace(" ", "_") for h in raw_fieldnames]
+                for i, row in enumerate(reader):
+                    normalised = {
+                        k.strip().lower().replace(" ", "_"): v.strip()
+                        for k, v in row.items()
+                    }
+                    normalised["_row_index"] = i
+                    self._ensure_tracking_cols(normalised)
+                    self.rows.append(normalised)
 
         # Make sure tracking columns exist in fieldnames list
         for col in [COL_NEXT, COL_LAST_SENT, COL_SENT_COUNT,
